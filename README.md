@@ -1,36 +1,9 @@
-# Agenda<br>
+# NGINX Ingress Controller Lab
 
-## Registration and Coffee<br>
-09:30 - 09:45 EEST<br>
+To run the lab:
 
-## Welcome, Introduction & Kick Off - AWS<br>
-09:45 - 10:00 EEST
-
-## Keynote with Eficode<br>
-10:00 - 10:30 EEST<br>
-Insights from a customer perspective on using NGINX on AWS, emphasizing real-world experience and benefits
-
-## Keynote with F5<br>
-10:30 - 11:30 EEST<br>
-- NGINX recap / story
-- NGINX for modern applications
-- Main use cases
-- Why NGINX as an Ingress Controller on AWS?
-
-## Lunch<br>
-11:30 - 12:30 EEST<br>
-Lunch is included in the day
-
-## Hands-on workshop with NGINX Labs<br>
-12:30 - 15:00 EEST<br>
-Deploy a demo apps on EKS and publish them through NGINX & test access with different use cases
-
-## Summary of the Day and Q&A<br>
-15:00 - 15:45 EEST
-
-## Networking and Drinks<br>
-15:45 - 17:00 EEST
-
+* [Deploy NGINX Ingress Controller](/setup)
+* [Run the use cases](/labs)
 
 ## Support
 
