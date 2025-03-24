@@ -19,7 +19,7 @@ Please refer to the [F5 DevCentral Community Code of Conduct](code_of_conduct.md
 
 ## Copyright
 
-Copyright 2014-2020 F5 Networks Inc.
+Copyright 2014-2025 F5 Networks Inc.
 
 ### F5 Networks Contributor License Agreement
 
