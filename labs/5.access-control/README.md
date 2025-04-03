@@ -2,19 +2,21 @@
 
 This use case applies access control policies to deny and allow traffic from a specific subnet
 
-Save the public FQDN for NGINX Ingress Controller
+Get NGINX Ingress Controller Node IP, HTTP and HTTPS NodePorts
 ```code
-export FQDN=`kubectl get svc -n nginx-ingress -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}'`
+export NIC_IP=`kubectl get pod -l app.kubernetes.io/instance=nic -n nginx-ingress -o json|jq '.items[0].status.hostIP' -r`
+export HTTP_PORT=`kubectl get svc nic-nginx-ingress-controller -n nginx-ingress -o jsonpath='{.spec.ports[0].nodePort}'`
+export HTTPS_PORT=`kubectl get svc nic-nginx-ingress-controller -n nginx-ingress -o jsonpath='{.spec.ports[1].nodePort}'`
 ```
 
-Check the public FQDN
+Check NGINX Ingress Controller IP address, HTTP and HTTPS ports
 ```code
-echo $FQDN
+echo -e "NIC address: $NIC_IP\nHTTP port  : $HTTP_PORT\nHTTPS port : $HTTPS_PORT"
 ```
 
 `cd` into the lab directory
 ```code
-cd ~/environment/NGINX-Ingress-Controller-Lab/labs/5.access-control
+cd ~/NGINX-Ingress-Controller-Lab/labs/5.access-control
 ```
 
 Deploy the sample web applications
@@ -37,6 +39,12 @@ Check the newly created `VirtualServer` resource
 kubectl get vs -o wide
 ```
 
+Output should be similar to
+```code
+NAME     STATE   HOST                 IP    EXTERNALHOSTNAME   PORTS   AGE
+webapp   Valid   webapp.example.com                                    4s
+```
+
 Describe the `webapp` virtualserver
 ```code
 kubectl describe vs webapp
@@ -51,10 +59,10 @@ Annotations:  <none>
 API Version:  k8s.nginx.org/v1
 Kind:         VirtualServer
 Metadata:
-  Creation Timestamp:  2024-08-15T14:26:05Z
+  Creation Timestamp:  2025-04-03T20:44:26Z
   Generation:          1
-  Resource Version:    47069
-  UID:                 3c2f02f0-052d-4020-bf83-a24ea1338a66
+  Resource Version:    248472
+  UID:                 06882d7b-5ec7-4fe8-b272-7052868aa9d6
 Spec:
   Host:  webapp.example.com
   Policies:
@@ -68,28 +76,25 @@ Spec:
     Port:     80
     Service:  webapp-svc
 Status:
-  External Endpoints:
-    Hostname:  ac06cff94afb14336bf40e5b194d8da0-1998712692.us-west-2.elb.amazonaws.com
-    Ports:     [80,443]
-  Message:     Configuration for default/webapp was added or updated 
-  Reason:      AddedOrUpdated
-  State:       Valid
+  Message:  Configuration for default/webapp was added or updated 
+  Reason:   AddedOrUpdated
+  State:    Valid
 Events:
   Type    Reason          Age   From                      Message
   ----    ------          ----  ----                      -------
-  Normal  AddedOrUpdated  26s   nginx-ingress-controller  Configuration for default/webapp was added or updated
+  Normal  AddedOrUpdated  23s   nginx-ingress-controller  Configuration for default/webapp was added or updated
 ```
 
 Access the application
 ```code
-curl -i -H "Host: webapp.example.com" http://$FQDN
+curl -i -H "Host: webapp.example.com" http://$NIC_IP:$HTTP_PORT
 ```
 
-NGINX Ingress controller blocks the request as the client IP belongs to subnet `10.0.0.0/8`
+NGINX Ingress controller blocks the request if the client IP belongs to subnet `10.0.0.0/8`
 ```
 HTTP/1.1 403 Forbidden
-Server: nginx/1.25.5
-Date: Thu, 15 Aug 2024 14:27:14 GMT
+Server: nginx/1.27.2
+Date: Thu, 03 Apr 2025 20:45:33 GMT
 Content-Type: text/html
 Content-Length: 153
 Connection: keep-alive
@@ -98,7 +103,7 @@ Connection: keep-alive
 <head><title>403 Forbidden</title></head>
 <body>
 <center><h1>403 Forbidden</h1></center>
-<hr><center>nginx/1.25.5</center>
+<hr><center>nginx/1.27.2</center>
 </body>
 </html>
 ```
@@ -110,25 +115,25 @@ kubectl apply -f 3.access-control-policy-allow.yaml
 
 Access the application
 ```code
-curl -i -H "Host: webapp.example.com" http://$FQDN
+curl -i -H "Host: webapp.example.com" http://$NIC_IP:$HTTP_PORT
 ```
 
 NGINX Ingress controller allows traffic from subnet `10.0.0.0/8`
 ```
 HTTP/1.1 200 OK
-Server: nginx/1.25.5
-Date: Thu, 15 Aug 2024 14:30:36 GMT
+Server: nginx/1.27.2
+Date: Thu, 03 Apr 2025 20:46:29 GMT
 Content-Type: text/plain
 Content-Length: 157
 Connection: keep-alive
-Expires: Thu, 15 Aug 2024 14:30:35 GMT
+Expires: Thu, 03 Apr 2025 20:46:28 GMT
 Cache-Control: no-cache
 
-Server address: 10.42.124.176:8080
-Server name: webapp-6db59b8dcc-g2tsd
-Date: 15/Aug/2024:14:30:36 +0000
+Server address: 192.168.36.99:8080
+Server name: webapp-6db59b8dcc-nchgr
+Date: 03/Apr/2025:20:46:29 +0000
 URI: /
-Request ID: e08326b5f2ac13ff12cc8d02479a4098
+Request ID: db6e3caf0b45c7e364f01961b40a3dd9
 ```
 
 Delete the lab

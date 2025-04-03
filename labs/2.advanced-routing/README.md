@@ -8,19 +8,22 @@ four services: `tea-post-svc`, `tea-svc`, `coffee-v1-svc` and `coffee-v2-svc`
 - Requests for `/coffee` that include the cookie `version` set to `v2` are routed to `coffee-v2-svc`
 - Requests for `/coffee` with no `version` coookie are routed to `coffee-v1-svc`
 
-Save the public FQDN for NGINX Ingress Controller
+
+Get NGINX Ingress Controller Node IP, HTTP and HTTPS NodePorts
 ```code
-export FQDN=`kubectl get svc -n nginx-ingress -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}'`
+export NIC_IP=`kubectl get pod -l app.kubernetes.io/instance=nic -n nginx-ingress -o json|jq '.items[0].status.hostIP' -r`
+export HTTP_PORT=`kubectl get svc nic-nginx-ingress-controller -n nginx-ingress -o jsonpath='{.spec.ports[0].nodePort}'`
+export HTTPS_PORT=`kubectl get svc nic-nginx-ingress-controller -n nginx-ingress -o jsonpath='{.spec.ports[1].nodePort}'`
 ```
 
-Check the public FQDN
+Check NGINX Ingress Controller IP address, HTTP and HTTPS ports
 ```code
-echo $FQDN
+echo -e "NIC address: $NIC_IP\nHTTP port  : $HTTP_PORT\nHTTPS port : $HTTPS_PORT"
 ```
 
 `cd` into the lab directory
 ```code
-cd ~/environment/NGINX-Ingress-Controller-Lab/labs/2.advanced-routing
+cd ~/NGINX-Ingress-Controller-Lab/labs/2.advanced-routing
 ```
 
 Deploy two sample web applications
@@ -78,66 +81,66 @@ kubectl get vs -o wide
 
 Output should be similar to
 ```code
-NAME   STATE   HOST               IP    EXTERNALHOSTNAME                                                          PORTS      AGE
-cafe   Valid   cafe.example.com         a87ecf270237f42878ecc7256d2f5fa4-1110491658.us-west-2.elb.amazonaws.com   [80,443]   38s
+NAME   STATE   HOST               IP    EXTERNALHOSTNAME   PORTS   AGE
+cafe   Valid   cafe.example.com                                    3s
 ```
 
 # Test application access
 
 Access the `tea` service using a `GET` request
 ```code
-curl --insecure --connect-to cafe.example.com:443:$FQDN https://cafe.example.com/tea
+curl --insecure --connect-to cafe.example.com:$HTTPS_PORT:$NIC_IP https://cafe.example.com:$HTTPS_PORT/tea
 ```
 
 The `tea` service replies
 ```
-Server address: 10.42.191.225:8080
-Server name: tea-596697966f-mhd9k
-Date: 15/Aug/2024:11:48:08 +0000
+Server address: 192.168.36.91:8080
+Server name: tea-596697966f-7rvb7
+Date: 03/Apr/2025:17:58:12 +0000
 URI: /tea
-Request ID: 1d165e7163511916e7b0f30f8c5ac7ec
+Request ID: cf2cb6b008113c356eb76c6cf6d35a79
 ```
 
 Access the `tea-post` service using a `POST` request
 ```code
-curl --insecure --connect-to cafe.example.com:443:$FQDN https://cafe.example.com/tea -X POST
+curl --insecure --connect-to cafe.example.com:$HTTPS_PORT:$NIC_IP https://cafe.example.com:$HTTPS_PORT/tea -X POST
 ```
 
 The `tea-post` service replies
-```e
-Server address: 10.42.191.227:8080
-Server name: tea-post-5647b8d885-9ssht
-Date: 15/Aug/2024:11:49:13 +0000
+```code
+Server address: 192.168.169.157:8080
+Server name: tea-post-5647b8d885-qthpp
+Date: 03/Apr/2025:17:58:40 +0000
 URI: /tea
-Request ID: b30d5ca917566ec79d232aee71585346
+Request ID: f40e6d860b0714412e18976ecd702c38
 ```
 
 Access the `coffee` service sending a request with the cookie `version=v2`
 ```code
-curl --insecure --connect-to cafe.example.com:443:$FQDN https://cafe.example.com/coffee --cookie "version=v2"
+curl --insecure --connect-to cafe.example.com:$HTTPS_PORT:$NIC_IP https://cafe.example.com:$HTTPS_PORT/coffee --cookie "version=v2"
 ```
 
 The `coffee-v2` service replies
 ```
-Server address: 10.42.191.226:8080
-Server name: coffee-v2-685fd9bb65-q5wtb
-Date: 15/Aug/2024:12:51:06 +0000
+Server address: 192.168.36.90:8080
+Server name: coffee-v2-685fd9bb65-wrkvt
+Date: 03/Apr/2025:17:59:14 +0000
 URI: /coffee
-Request ID: c42ecb435ae65e26caa0c5b6a2b8bb23
+Request ID: 03009ab419bb3dd24a5e23698f6c5f76
 ```
 
 Access the `coffee` service sending a request without the cookie
 ```code
-curl --insecure --connect-to cafe.example.com:443:$FQDN https://cafe.example.com/coffee
+curl --insecure --connect-to cafe.example.com:$HTTPS_PORT:$NIC_IP https://cafe.example.com:$HTTPS_PORT/coffee
 ```
 
 The `coffee-v1` service replies
 ```
-Server address: 10.42.158.35:8080
-Server name: coffee-v1-c48b96b65-vhvbm
-Date: 15/Aug/2024:12:52:08 +0000
+Server address: 192.168.36.93:8080
+Server name: coffee-v1-c48b96b65-tnj4g
+Date: 03/Apr/2025:17:59:42 +0000
 URI: /coffee
-Request ID: 346f210ff4e6276f9347d02c2c8c6387
+Request ID: c58a357c6633990bc3a64b76a2a11dc7
 ```
 
 Delete the lab

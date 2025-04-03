@@ -5,19 +5,21 @@ This use case configures traffic splitting for a sample application with two ser
 
 This use case shows how to enforce JWT authentication at the NGINX Ingress Controller level
 
-Save the public FQDN for NGINX Ingress Controller
+Get NGINX Ingress Controller Node IP, HTTP and HTTPS NodePorts
 ```code
-export FQDN=`kubectl get svc -n nginx-ingress -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}'`
+export NIC_IP=`kubectl get pod -l app.kubernetes.io/instance=nic -n nginx-ingress -o json|jq '.items[0].status.hostIP' -r`
+export HTTP_PORT=`kubectl get svc nic-nginx-ingress-controller -n nginx-ingress -o jsonpath='{.spec.ports[0].nodePort}'`
+export HTTPS_PORT=`kubectl get svc nic-nginx-ingress-controller -n nginx-ingress -o jsonpath='{.spec.ports[1].nodePort}'`
 ```
 
-Check the public FQDN
+Check NGINX Ingress Controller IP address, HTTP and HTTPS ports
 ```code
-echo $FQDN
+echo -e "NIC address: $NIC_IP\nHTTP port  : $HTTP_PORT\nHTTPS port : $HTTPS_PORT"
 ```
 
 `cd` into the lab directory
 ```code
-cd ~/environment/NGINX-Ingress-Controller-Lab/labs/4.traffic-splitting
+cd ~/NGINX-Ingress-Controller-Lab/labs/4.traffic-splitting
 ```
 
 Deploy the sample web applications
@@ -35,6 +37,12 @@ Check the newly created `VirtualServer` resource
 kubectl get vs -o wide
 ```
 
+Output should be similar to
+```
+NAME   STATE   HOST               IP    EXTERNALHOSTNAME   PORTS   AGE
+cafe   Valid   cafe.example.com                                    3s
+```
+
 Describe the `cafe` virtualserver
 ```code
 kubectl describe vs cafe
@@ -49,10 +57,10 @@ Annotations:  <none>
 API Version:  k8s.nginx.org/v1
 Kind:         VirtualServer
 Metadata:
-  Creation Timestamp:  2024-08-15T13:58:44Z
+  Creation Timestamp:  2025-04-03T20:41:07Z
   Generation:          1
-  Resource Version:    41375
-  UID:                 699c41b0-a65a-453b-86c5-be1358467292
+  Resource Version:    247959
+  UID:                 861ef737-ef95-4a9e-875b-e83a8f9c7f3a
 Spec:
   Host:  cafe.example.com
   Routes:
@@ -72,59 +80,38 @@ Spec:
     Port:     80
     Service:  coffee-v2-svc
 Status:
-  External Endpoints:
-    Hostname:  ac06cff94afb14336bf40e5b194d8da0-1998712692.us-west-2.elb.amazonaws.com
-    Ports:     [80,443]
-  Message:     Configuration for default/cafe was added or updated 
-  Reason:      AddedOrUpdated
-  State:       Valid
+  Message:  Configuration for default/cafe was added or updated 
+  Reason:   AddedOrUpdated
+  State:    Valid
 Events:
   Type    Reason          Age   From                      Message
   ----    ------          ----  ----                      -------
-  Normal  AddedOrUpdated  31s   nginx-ingress-controller  Configuration for default/cafe was added or updated
+  Normal  AddedOrUpdated  24s   nginx-ingress-controller  Configuration for default/cafe was added or updated
 ```
 
 # Test application access
 
 Access the application
 ```code
-curl -i -H "Host: cafe.example.com" http://$FQDN/coffee
+curl -H "Host: cafe.example.com" http://$NIC_IP:$HTTP_PORT/coffee
 ```
 
 90% of responses will come from `coffee-v1-svc` and be similar to
 ```
-HTTP/1.1 200 OK
-Server: nginx/1.25.5
-Date: Thu, 15 Aug 2024 14:06:40 GMT
-Content-Type: text/plain
-Content-Length: 163
-Connection: keep-alive
-Expires: Thu, 15 Aug 2024 14:06:39 GMT
-Cache-Control: no-cache
-
-Server address: 10.42.151.2:8080
-Server name: coffee-v1-c48b96b65-whg4d
-Date: 15/Aug/2024:14:06:40 +0000
+Server address: 192.168.36.105:8080
+Server name: coffee-v1-c48b96b65-6rlgx
+Date: 03/Apr/2025:20:42:14 +0000
 URI: /coffee
-Request ID: 71b09d9c6cec888845d7a95f508d4720
+Request ID: 7e5a8e7143f9f5341b9c19ee60e47b8b
 ```
 
 10% of responses will come from `coffee-v2-svc` and be similar to
 ```
-HTTP/1.1 200 OK
-Server: nginx/1.25.5
-Date: Thu, 15 Aug 2024 14:06:30 GMT
-Content-Type: text/plain
-Content-Length: 164
-Connection: keep-alive
-Expires: Thu, 15 Aug 2024 14:06:29 GMT
-Cache-Control: no-cache
-
-Server address: 10.42.151.1:8080
-Server name: coffee-v2-685fd9bb65-6zr4k
-Date: 15/Aug/2024:14:06:30 +0000
+Server address: 192.168.36.104:8080
+Server name: coffee-v2-685fd9bb65-xpgfl
+Date: 03/Apr/2025:20:42:48 +0000
 URI: /coffee
-Request ID: 948bce631584e1d8e2a6d4bc611fc0a1
+Request ID: 77d52bf9dc70bd6df6ee099553835615
 ```
 
 Test access using the script provided. It sends 100 requests and shows the traffic split ratio

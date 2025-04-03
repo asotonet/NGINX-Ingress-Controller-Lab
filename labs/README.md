@@ -1,6 +1,18 @@
-# NGINX Ingress Controller use cases
+# Getting started with use cases
 
-Lab time: ~20 minutes per use case
+1. Clone this repository
+
+```code
+git clone https://github.com/f5devcentral/NGINX-Ingress-Controller-Lab.git
+```
+
+2. Change directory
+
+```code
+cd NGINX-Ingress-Controller-Lab/labs
+```
+
+## Running use cases
 
 - [Lab 1](1.basic-ingress) - Basic Ingress Controller, URI-based routing and TLS offload
 - [Lab 2](2.advanced-routing) - Advanced L7 routing
@@ -10,4 +22,4 @@ Lab time: ~20 minutes per use case
 - [Lab 6](6.rate-limiting) - Rate limiting
 - [Lab 7](7.app-protect-waf) - NGINX App Protect WAF
 
-The official NGINX Ingress Controller Github repository provides additional [examples](https://github.com/nginxinc/kubernetes-ingress/tree/main/examples)
+The official NGINX Ingress Controller repository provides additional [examples](https://github.com/nginx/kubernetes-ingress/tree/main/examples)

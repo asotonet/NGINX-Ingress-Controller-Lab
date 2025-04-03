@@ -5,19 +5,21 @@ This use case shows how to publish two sample applications using:
 - URI-based routing
 - TLS offload
 
-Save the public FQDN for NGINX Ingress Controller
+Get NGINX Ingress Controller Node IP, HTTP and HTTPS NodePorts
 ```code
-export FQDN=`kubectl get svc -n nginx-ingress -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}'`
+export NIC_IP=`kubectl get pod -l app.kubernetes.io/instance=nic -n nginx-ingress -o json|jq '.items[0].status.hostIP' -r`
+export HTTP_PORT=`kubectl get svc nic-nginx-ingress-controller -n nginx-ingress -o jsonpath='{.spec.ports[0].nodePort}'`
+export HTTPS_PORT=`kubectl get svc nic-nginx-ingress-controller -n nginx-ingress -o jsonpath='{.spec.ports[1].nodePort}'`
 ```
 
-Check the public FQDN
+Check NGINX Ingress Controller IP address, HTTP and HTTPS ports
 ```code
-echo $FQDN
+echo -e "NIC address: $NIC_IP\nHTTP port  : $HTTP_PORT\nHTTPS port : $HTTPS_PORT"
 ```
 
 `cd` into the lab directory
 ```code
-cd ~/environment/NGINX-Ingress-Controller-Lab/labs/1.basic-ingress
+cd ~/NGINX-Ingress-Controller-Lab/labs/1.basic-ingress
 ```
 
 Deploy two sample web applications
@@ -72,8 +74,8 @@ kubectl get ingress
 
 Output should be similar to
 ```code
-NAME           CLASS   HOSTS              ADDRESS                                                                   PORTS     AGE
-cafe-ingress   nginx   cafe.example.com   a87ecf270237f42878ecc7256d2f5fa4-1110491658.us-west-2.elb.amazonaws.com   80, 443   13s
+NAME           CLASS   HOSTS              ADDRESS   PORTS     AGE
+cafe-ingress   nginx   cafe.example.com             80, 443   13s
 ```
 
 [Test](#test-application-access) application access
@@ -96,8 +98,8 @@ kubectl get vs -o wide
 
 Output should be similar to
 ```code
-NAME   STATE   HOST               IP    EXTERNALHOSTNAME                                                          PORTS      AGE
-cafe   Valid   cafe.example.com         a87ecf270237f42878ecc7256d2f5fa4-1110491658.us-west-2.elb.amazonaws.com   [80,443]   38s
+NAME   STATE   HOST               IP    EXTERNALHOSTNAME   PORTS   AGE
+cafe   Valid   cafe.example.com                                    52s
 ```
 
 [Test](#test-application-access) application access
@@ -108,6 +110,7 @@ Delete the lab
 kubectl delete -f .
 ```
 
+
 # Test applications access
 
 We will use `curl` with the `--insecure` option to turn off certificate verification of our
@@ -116,28 +119,28 @@ with `cafe.example.com`
 
 To access `coffee`
 ```code
-curl --insecure --connect-to cafe.example.com:443:$FQDN https://cafe.example.com/coffee
+curl --insecure --connect-to cafe.example.com:$HTTPS_PORT:$NIC_IP https://cafe.example.com:$HTTPS_PORT/coffee
 ```
 
 Output should be similar to
 ```code
-Server address: 10.42.158.34:8080
-Server name: coffee-56b44d4c55-4v6jp
-Date: 15/Aug/2024:11:08:15 +0000
+Server address: 192.168.36.95:8080
+Server name: coffee-56b44d4c55-57mll
+Date: 03/Apr/2025:17:52:49 +0000
 URI: /coffee
-Request ID: 155dbb65002cf009be77c14d5f56a4c2
+Request ID: 955d316d90c3204040b07e00fe497bc8
 ```
 
 To access `tea`
 ```code
-curl --insecure --connect-to cafe.example.com:443:$FQDN https://cafe.example.com/tea
+curl --insecure --connect-to cafe.example.com:$HTTPS_PORT:$NIC_IP https://cafe.example.com:$HTTPS_PORT/tea
 ```
 
 Output should be similar to
 ```code
-Server address: 10.42.117.1:8080
-Server name: tea-596697966f-cc4zj
-Date: 15/Aug/2024:11:08:35 +0000
+Server address: 192.168.169.147:8080
+Server name: tea-596697966f-pnkqk
+Date: 03/Apr/2025:17:53:24 +0000
 URI: /tea
-Request ID: 8387ea6bd56e92e3a84d50717b8151e7
+Request ID: e4ffa71cff7fbf8d8dd3e36ce8e99085
 ```

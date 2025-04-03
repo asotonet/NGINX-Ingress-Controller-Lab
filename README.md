@@ -1,9 +1,33 @@
 # NGINX Ingress Controller Lab
 
-To run the lab:
+This repository provides a full lab walkthrough for [NGINX Ingress Controller](https://docs.nginx.com/nginx-ingress-controller) and several use cases.
 
-* [Deploy NGINX Ingress Controller](/setup)
-* [Run the use cases](/labs)
+## Overview
+
+This repository provides a comprehensive walkthrough of leveraging NGINX Ingress Controller within a Kubernetes environment.
+It showcases a variety of use cases, demonstrating how to effectively implement and manage gateway services for microservices architectures.
+The lab includes step-by-step instructions, configuration examples, and practical scenarios that illustrate the powerful features of NGINX Ingress Controller, such as traffic management, security enhancements, and load balancing.
+
+Whether you're a beginner looking to learn or an experienced developer seeking to deepen your understanding of NGINX Ingress Controller in Kubernetes, this repository equips you with the necessary resources and insights to publish and secure efficient and scalable applications.
+
+## Getting Started
+
+Prerequisites to use this repository are:
+
+* Running Kubernetes cluster
+* Kubectl
+* [jq](https://github.com/jqlang/jq) 
+* Valid NGINX Plus license. You can request a trial license [here](https://www.f5.com/trials/nginx-one)
+  * Three files are needed (sample names here are from a trial license): `nginx-one-eval.crt` `nginx-one-eval.key` and `nginx-one-eval.jwt`
+
+## Deployment
+
+1. [Deploy](/DEPLOYING.md) NGINX Ingress Controller
+2. [Deploy](labs) use cases
+
+## Removal
+
+Follow the instructions [here](/DEPLOYING.md#uninstalling) to uninstall NGINX Ingress Controller
 
 ## Support
 
@@ -19,11 +43,11 @@ Please refer to the [F5 DevCentral Community Code of Conduct](code_of_conduct.md
 
 ## Copyright
 
-Copyright 2014-2025 F5 Networks Inc.
+Copyright 2014-2025 F5, Inc.
 
 ### F5 Networks Contributor License Agreement
 
-Before you start contributing to any project sponsored by F5 Networks, Inc. (F5) on GitHub, you will need to sign a Contributor License Agreement (CLA).
+Before you start contributing to any project sponsored by F5, Inc. (F5) on GitHub, you will need to sign a Contributor License Agreement (CLA).
 
 If you are signing as an individual, we recommend that you talk to your employer (if applicable) before signing the CLA since some employment agreements may have restrictions on your contributions to other projects.
 Otherwise by submitting a CLA you represent that you are legally entitled to grant the licenses recited therein.

@@ -2,19 +2,21 @@
 
 This use case shows how to enforce JWT authentication at the NGINX Ingress Controller level
 
-Save the public FQDN for NGINX Ingress Controller
+Get NGINX Ingress Controller Node IP, HTTP and HTTPS NodePorts
 ```code
-export FQDN=`kubectl get svc -n nginx-ingress -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}'`
+export NIC_IP=`kubectl get pod -l app.kubernetes.io/instance=nic -n nginx-ingress -o json|jq '.items[0].status.hostIP' -r`
+export HTTP_PORT=`kubectl get svc nic-nginx-ingress-controller -n nginx-ingress -o jsonpath='{.spec.ports[0].nodePort}'`
+export HTTPS_PORT=`kubectl get svc nic-nginx-ingress-controller -n nginx-ingress -o jsonpath='{.spec.ports[1].nodePort}'`
 ```
 
-Check the public FQDN
+Check NGINX Ingress Controller IP address, HTTP and HTTPS ports
 ```code
-echo $FQDN
+echo -e "NIC address: $NIC_IP\nHTTP port  : $HTTP_PORT\nHTTPS port : $HTTPS_PORT"
 ```
 
 `cd` into the lab directory
 ```code
-cd ~/environment/NGINX-Ingress-Controller-Lab/labs/3.authentication
+cd ~/NGINX-Ingress-Controller-Lab/labs/3.authentication
 ```
 
 Deploy the sample web applications
@@ -42,13 +44,19 @@ Check the newly created `VirtualServer` resource
 kubectl get vs -o wide
 ```
 
+Output should be similar to
+```code
+NAME     STATE   HOST                 IP    EXTERNALHOSTNAME   PORTS   AGE
+webapp   Valid   webapp.example.com                                    33s
+```
+
 Describe the `webapp` virtualserver
 ```code
 kubectl describe vs webapp
 ```
 
 Output should be similar to
-```
+```code
 Name:         webapp
 Namespace:    default
 Labels:       <none>
@@ -56,10 +64,10 @@ Annotations:  <none>
 API Version:  k8s.nginx.org/v1
 Kind:         VirtualServer
 Metadata:
-  Creation Timestamp:  2024-08-15T13:11:27Z
+  Creation Timestamp:  2025-04-03T18:01:01Z
   Generation:          1
-  Resource Version:    31556
-  UID:                 e2af5849-3079-4069-8a04-67957f843e25
+  Resource Version:    227335
+  UID:                 af70fa4f-2dbc-4412-a311-88b861deb52d
 Spec:
   Host:  webapp.example.com
   Policies:
@@ -73,16 +81,13 @@ Spec:
     Port:     80
     Service:  webapp-svc
 Status:
-  External Endpoints:
-    Hostname:  ac06cff94afb14336bf40e5b194d8da0-1998712692.us-west-2.elb.amazonaws.com
-    Ports:     [80,443]
-  Message:     Configuration for default/webapp was added or updated 
-  Reason:      AddedOrUpdated
-  State:       Valid
+  Message:  Configuration for default/webapp was added or updated 
+  Reason:   AddedOrUpdated
+  State:    Valid
 Events:
   Type    Reason          Age   From                      Message
   ----    ------          ----  ----                      -------
-  Normal  AddedOrUpdated  114s  nginx-ingress-controller  Configuration for default/webapp was added or updated
+  Normal  AddedOrUpdated  11s   nginx-ingress-controller  Configuration for default/webapp was added or updated
 ```
 
 # Test application access
@@ -90,14 +95,14 @@ Events:
 Access the application without a JWT token
 
 ```code
-curl -i -H "Host: webapp.example.com" http://$FQDN
+curl -i -H "Host: webapp.example.com" http://$NIC_IP:$HTTP_PORT
 ```
 
 The reply should be similar to
 ```
 HTTP/1.1 401 Unauthorized
-Server: nginx/1.25.5
-Date: Thu, 15 Aug 2024 13:14:58 GMT
+Server: nginx/1.27.2
+Date: Thu, 03 Apr 2025 18:02:15 GMT
 Content-Type: text/html
 Content-Length: 179
 Connection: keep-alive
@@ -107,7 +112,7 @@ WWW-Authenticate: Bearer realm="MyProductAPI"
 <head><title>401 Authorization Required</title></head>
 <body>
 <center><h1>401 Authorization Required</h1></center>
-<hr><center>nginx/1.25.5</center>
+<hr><center>nginx/1.27.2</center>
 </body>
 </html>
 ```
@@ -115,25 +120,25 @@ WWW-Authenticate: Bearer realm="MyProductAPI"
 Access the application using a valid JWT token
 
 ```code
-curl -i -H "Host: webapp.example.com" http://$FQDN -H "token: `cat token.jwt`"
+curl -i -H "Host: webapp.example.com" http://$NIC_IP:$HTTP_PORT -H "token: `cat token.jwt`"
 ```
 
 The reply should be similar to
-```
+```code
 HTTP/1.1 200 OK
-Server: nginx/1.25.5
-Date: Thu, 15 Aug 2024 13:16:17 GMT
+Server: nginx/1.27.2
+Date: Thu, 03 Apr 2025 18:03:47 GMT
 Content-Type: text/plain
-Content-Length: 155
+Content-Length: 158
 Connection: keep-alive
-Expires: Thu, 15 Aug 2024 13:16:16 GMT
+Expires: Thu, 03 Apr 2025 18:03:46 GMT
 Cache-Control: no-cache
 
-Server address: 10.42.127.0:8080
-Server name: webapp-6db59b8dcc-hrtjf
-Date: 15/Aug/2024:13:16:17 +0000
+Server address: 192.168.36.101:8080
+Server name: webapp-6db59b8dcc-ltt6p
+Date: 03/Apr/2025:18:03:47 +0000
 URI: /
-Request ID: 2123f3d5709346f0db0e35fc0051e0e6HTTP/1.1 200 OK
+Request ID: 647bb23b4b46630207ec55267584d403
 ```
 
 Delete the lab

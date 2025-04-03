@@ -2,19 +2,21 @@
 
 This use case applies WAF protection to a sample application exposed through NGINX Ingress Controller
 
-Save the public FQDN for NGINX Ingress Controller
+Get NGINX Ingress Controller Node IP, HTTP and HTTPS NodePorts
 ```code
-export FQDN=`kubectl get svc -n nginx-ingress -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}'`
+export NIC_IP=`kubectl get pod -l app.kubernetes.io/instance=nic -n nginx-ingress -o json|jq '.items[0].status.hostIP' -r`
+export HTTP_PORT=`kubectl get svc nic-nginx-ingress-controller -n nginx-ingress -o jsonpath='{.spec.ports[0].nodePort}'`
+export HTTPS_PORT=`kubectl get svc nic-nginx-ingress-controller -n nginx-ingress -o jsonpath='{.spec.ports[1].nodePort}'`
 ```
 
-Check the public FQDN
+Check NGINX Ingress Controller IP address, HTTP and HTTPS ports
 ```code
-echo $FQDN
+echo -e "NIC address: $NIC_IP\nHTTP port  : $HTTP_PORT\nHTTPS port : $HTTPS_PORT"
 ```
 
 `cd` into the lab directory
 ```code
-cd ~/environment/NGINX-Ingress-Controller-Lab/labs/7.app-protect-waf
+cd ~/NGINX-Ingress-Controller-Lab/labs/7.app-protect-waf
 ```
 
 Deploy the sample web applications
@@ -55,13 +57,19 @@ Check the newly created `VirtualServer` resource
 kubectl get vs -o wide
 ```
 
+Output should be similar to
+```code
+NAME     STATE   HOST                 IP    EXTERNALHOSTNAME   PORTS   AGE
+webapp   Valid   webapp.example.com                                    9m49s
+```
+
 Describe the `webapp` virtualserver
 ```code
 kubectl describe vs webapp
 ```
 
 Output should be similar to
-```
+```code
 Name:         webapp
 Namespace:    default
 Labels:       <none>
@@ -69,10 +77,10 @@ Annotations:  <none>
 API Version:  k8s.nginx.org/v1
 Kind:         VirtualServer
 Metadata:
-  Creation Timestamp:  2024-08-15T15:24:00Z
+  Creation Timestamp:  2025-04-03T21:03:22Z
   Generation:          1
-  Resource Version:    59184
-  UID:                 cd81a06e-48d5-46aa-b44c-0a17e35e8664
+  Resource Version:    251235
+  UID:                 5e08b717-01b0-482d-8e20-10de3374a8f7
 Spec:
   Host:  webapp.example.com
   Policies:
@@ -86,64 +94,61 @@ Spec:
     Port:     80
     Service:  webapp-svc
 Status:
-  External Endpoints:
-    Hostname:  ac06cff94afb14336bf40e5b194d8da0-1998712692.us-west-2.elb.amazonaws.com
-    Ports:     [80,443]
-  Message:     Configuration for default/webapp was added or updated 
-  Reason:      AddedOrUpdated
-  State:       Valid
+  Message:  Configuration for default/webapp was added or updated 
+  Reason:   AddedOrUpdated
+  State:    Valid
 Events:
   Type    Reason          Age   From                      Message
   ----    ------          ----  ----                      -------
-  Normal  AddedOrUpdated  13s   nginx-ingress-controller  Configuration for default/webapp was added or updated
+  Normal  AddedOrUpdated  1s    nginx-ingress-controller  Configuration for default/webapp was added or updated
 ```
 
 Access the application using a legitimate request
 ```code
-curl -i -H "Host: webapp.example.com" http://$FQDN
+curl -i -H "Host: webapp.example.com" http://$NIC_IP:$HTTP_PORT
 ```
 
 Output should be similar to
-```
+```code
 HTTP/1.1 200 OK
-Date: Thu, 15 Aug 2024 15:26:56 GMT
+Date: Thu, 03 Apr 2025 21:03:43 GMT
 Content-Type: text/plain
-Content-Length: 157
+Content-Length: 158
 Connection: keep-alive
-Expires: Thu, 15 Aug 2024 15:26:55 GMT
+Expires: Thu, 03 Apr 2025 21:03:42 GMT
 Cache-Control: no-cache
 
-Server address: 10.42.124.176:8080
-Server name: webapp-6db59b8dcc-vwn6p
-Date: 15/Aug/2024:15:26:56 +0000
+Server address: 192.168.36.103:8080
+Server name: webapp-6db59b8dcc-l5dsk
+Date: 03/Apr/2025:21:03:43 +0000
 URI: /
-Request ID: a9c2971d52f3bd7a4a642bbde1868edd
+Request ID: 204ea07975ae1618b29728b25f129498
 ```
 
 Access the application using a suspicious URL
-```
-curl -i -H "Host: webapp.example.com" "http://$FQDN/<script>"
+```code
+curl -i -H "Host: webapp.example.com" "http://$NIC_IP:$HTTP_PORT/<script>alert();</script>"
 ```
 
 Output should be similar to
-```
+```code
 HTTP/1.1 200 OK
 Content-Type: text/html; charset=utf-8
 Connection: close
 Cache-Control: no-cache
 Pragma: no-cache
-Content-Length: 246
+Content-Length: 247
 
-<html><head><title>Request Rejected</title></head><body>The requested URL was rejected. Please consult with your administrator.<br><br>Your support ID is: 4791600865828351744<br><br><a href='javascript:history.back();'>[Go Back]</a></body></html>
+<html><head><title>Request Rejected</title></head><body>The requested URL was rejected. Please consult with your administrator.<br><br>Your support ID is: 15024425679859283163<br><br><a href='javascript:history.back();'>[Go Back]</a></body></html>
 ```
 
 Access the application sending data that matches the user defined signature
-```
-curl -i -H "Host: webapp.example.com" http://$FQDN -X POST -d "apple"
+```code
+curl -i -H "Host: webapp.example.com" http://$NIC_IP:$HTTP_PORT -X POST -d "apple"
 ```
 
 Output should be similar to
-```
+```code
 HTTP/1.1 200 OK
 Content-Type: text/html; charset=utf-8
 Connection: close
@@ -151,7 +156,7 @@ Cache-Control: no-cache
 Pragma: no-cache
 Content-Length: 246
 
-<html><head><title>Request Rejected</title></head><body>The requested URL was rejected. Please consult with your administrator.<br><br>Your support ID is: 8869365625080570970<br><br><a href='javascript:history.back();'>[Go Back]</a></body></html>
+<html><head><title>Request Rejected</title></head><body>The requested URL was rejected. Please consult with your administrator.<br><br>Your support ID is: 9074180338395228252<br><br><a href='javascript:history.back();'>[Go Back]</a></body></html>
 ```
 
 Check the security violation logs in the `syslog` pod

@@ -2,19 +2,21 @@
 
 This use case applies rate limiting for an application exposed through NGINX Ingress Controller
 
-Save the public FQDN for NGINX Ingress Controller
+Get NGINX Ingress Controller Node IP, HTTP and HTTPS NodePorts
 ```code
-export FQDN=`kubectl get svc -n nginx-ingress -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}'`
+export NIC_IP=`kubectl get pod -l app.kubernetes.io/instance=nic -n nginx-ingress -o json|jq '.items[0].status.hostIP' -r`
+export HTTP_PORT=`kubectl get svc nic-nginx-ingress-controller -n nginx-ingress -o jsonpath='{.spec.ports[0].nodePort}'`
+export HTTPS_PORT=`kubectl get svc nic-nginx-ingress-controller -n nginx-ingress -o jsonpath='{.spec.ports[1].nodePort}'`
 ```
 
-Check the public FQDN
+Check NGINX Ingress Controller IP address, HTTP and HTTPS ports
 ```code
-echo $FQDN
+echo -e "NIC address: $NIC_IP\nHTTP port  : $HTTP_PORT\nHTTPS port : $HTTPS_PORT"
 ```
 
 `cd` into the lab directory
 ```code
-cd ~/environment/NGINX-Ingress-Controller-Lab/labs/6.rate-limiting
+cd ~/NGINX-Ingress-Controller-Lab/labs/6.rate-limiting
 ```
 
 Deploy the sample web applications
@@ -37,6 +39,12 @@ Check the newly created `VirtualServer` resource
 kubectl get vs -o wide
 ```
 
+Output should be similar to
+```code
+NAME     STATE   HOST                 IP    EXTERNALHOSTNAME   PORTS   AGE
+webapp   Valid   webapp.example.com                                    4s
+```
+
 Describe the `webapp` virtualserver
 ```code
 kubectl describe vs webapp
@@ -51,10 +59,10 @@ Annotations:  <none>
 API Version:  k8s.nginx.org/v1
 Kind:         VirtualServer
 Metadata:
-  Creation Timestamp:  2024-08-15T14:44:57Z
+  Creation Timestamp:  2025-04-03T20:47:29Z
   Generation:          1
-  Resource Version:    50998
-  UID:                 88ea7685-3f25-405a-9929-a36d8c292e3a
+  Resource Version:    248921
+  UID:                 e5ed98c5-10f0-4a0f-8a2b-cfe8e020d401
 Spec:
   Host:  webapp.example.com
   Policies:
@@ -68,66 +76,64 @@ Spec:
     Port:     80
     Service:  webapp-svc
 Status:
-  External Endpoints:
-    Hostname:  ac06cff94afb14336bf40e5b194d8da0-1998712692.us-west-2.elb.amazonaws.com
-    Ports:     [80,443]
-  Message:     Configuration for default/webapp was added or updated 
-  Reason:      AddedOrUpdated
-  State:       Valid
+  Message:  Configuration for default/webapp was added or updated 
+  Reason:   AddedOrUpdated
+  State:    Valid
 Events:
-  Type    Reason          Age    From                      Message
-  ----    ------          ----   ----                      -------
-  Normal  AddedOrUpdated  5m39s  nginx-ingress-controller  Configuration for default/webapp was added or updated
+  Type    Reason          Age   From                      Message
+  ----    ------          ----  ----                      -------
+  Normal  AddedOrUpdated  22s   nginx-ingress-controller  Configuration for default/webapp was added or updated
 ```
 
 Access the application
 ```code
-curl -i -H "Host: webapp.example.com" http://$FQDN
+curl -i -H "Host: webapp.example.com" http://$NIC_IP:$HTTP_PORT
 ```
 
 Output should be similar to
 ```
 HTTP/1.1 200 OK
-Server: nginx/1.25.5
-Date: Thu, 15 Aug 2024 14:50:47 GMT
+Server: nginx/1.27.2
+Date: Thu, 03 Apr 2025 20:48:16 GMT
 Content-Type: text/plain
-Content-Length: 157
+Content-Length: 158
 Connection: keep-alive
-Expires: Thu, 15 Aug 2024 14:50:46 GMT
+Expires: Thu, 03 Apr 2025 20:48:15 GMT
 Cache-Control: no-cache
 
-Server address: 10.42.124.176:8080
-Server name: webapp-6db59b8dcc-zx4bm
-Date: 15/Aug/2024:14:50:47 +0000
+Server address: 192.168.36.102:8080
+Server name: webapp-6db59b8dcc-pkfp8
+Date: 03/Apr/2025:20:48:16 +0000
 URI: /
-Request ID: 0b0a532bfffd15036cdd29eb8f2eeff9
+Request ID: 73dfb52a3cd42b4a6953ea4f3ac55e94
 ```
 
 Access the application twice in rapid sequence
 ```code
-curl -i -H "Host: webapp.example.com" http://$FQDN ; curl -i -H "Host: webapp.example.com" http://$FQDN
+curl -i -H "Host: webapp.example.com" http://$NIC_IP:$HTTP_PORT; curl -i -H "Host: webapp.example.com" http://$NIC_IP:$HTTP_PORT
 ```
 
-The first request is server and the second is rate limited with HTTP code 429
+The first request is served and the second is rate limited with HTTP code 429
+
 Output should be similar to
 ```
 HTTP/1.1 200 OK
-Server: nginx/1.25.5
-Date: Thu, 15 Aug 2024 14:53:12 GMT
+Server: nginx/1.27.2
+Date: Thu, 03 Apr 2025 20:49:03 GMT
 Content-Type: text/plain
-Content-Length: 157
+Content-Length: 158
 Connection: keep-alive
-Expires: Thu, 15 Aug 2024 14:53:11 GMT
+Expires: Thu, 03 Apr 2025 20:49:02 GMT
 Cache-Control: no-cache
 
-Server address: 10.42.124.176:8080
-Server name: webapp-6db59b8dcc-zx4bm
-Date: 15/Aug/2024:14:53:12 +0000
+Server address: 192.168.36.102:8080
+Server name: webapp-6db59b8dcc-pkfp8
+Date: 03/Apr/2025:20:49:03 +0000
 URI: /
-Request ID: 4d973257f1be29181f68cba3794fa34b
+Request ID: 7b431f3052bbdcfd6905c6875469bee3
 HTTP/1.1 429 Too Many Requests
-Server: nginx/1.25.5
-Date: Thu, 15 Aug 2024 14:53:12 GMT
+Server: nginx/1.27.2
+Date: Thu, 03 Apr 2025 20:49:03 GMT
 Content-Type: text/html
 Content-Length: 169
 Connection: keep-alive
@@ -136,7 +142,7 @@ Connection: keep-alive
 <head><title>429 Too Many Requests</title></head>
 <body>
 <center><h1>429 Too Many Requests</h1></center>
-<hr><center>nginx/1.25.5</center>
+<hr><center>nginx/1.27.2</center>
 </body>
 </html>
 ```
