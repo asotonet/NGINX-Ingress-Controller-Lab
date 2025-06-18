@@ -36,14 +36,14 @@ Note: `<nginx-one-eval.key>` and `<nginx-one-eval.key>` are the path and filenam
 
 Pick the latest `5.x` version (`5.0.0` at the time of writing)
 
-5. Apply NGINX Ingress Controller custom resources (make sure the URI below references the latest available `4.x` NGINX Ingress Controller version)
+5. Apply NGINX Ingress Controller custom resources (make sure the URI below references the latest available `5.x` NGINX Ingress Controller version)
 
 ```code
 kubectl apply -f https://raw.githubusercontent.com/nginx/kubernetes-ingress/v5.0.0/deploy/crds.yaml
 kubectl apply -f https://raw.githubusercontent.com/nginx/kubernetes-ingress/v5.0.0/deploy/crds-nap-waf.yaml
 ```
 
-6. Install NGINX Ingress Controller with NGINX App Protect through its Helm chart (set `nginx.image.tag` to the latest `4.x` available NGINX Ingress Controller version)
+6. Install NGINX Ingress Controller with NGINX App Protect through its Helm chart (set `nginx.image.tag` to the latest `5.x` available NGINX Ingress Controller version)
 
 ```code
 helm install nic oci://ghcr.io/nginx/charts/nginx-ingress \
