@@ -34,22 +34,22 @@ curl -s https://private-registry.nginx.com/v2/nginx-ic-nap/nginx-plus-ingress/ta
 
 Note: `<nginx-one-eval.key>` and `<nginx-one-eval.key>` are the path and filename of your `nginx-one-eval.crt` and `nginx-one-eval.crt` files respectively
 
-Pick the latest `5.x` version (`5.0.0` at the time of writing)
+Pick the latest `5.x` version (`5.1.0` at the time of writing)
 
 5. Apply NGINX Ingress Controller custom resources (make sure the URI below references the latest available `5.x` NGINX Ingress Controller version)
 
 ```code
-kubectl apply -f https://raw.githubusercontent.com/nginx/kubernetes-ingress/v5.0.0/deploy/crds.yaml
-kubectl apply -f https://raw.githubusercontent.com/nginx/kubernetes-ingress/v5.0.0/deploy/crds-nap-waf.yaml
+kubectl apply -f https://raw.githubusercontent.com/nginx/kubernetes-ingress/v5.1.0/deploy/crds.yaml
+kubectl apply -f https://raw.githubusercontent.com/nginx/kubernetes-ingress/v5.1.0/deploy/crds-nap-waf.yaml
 ```
 
 6. Install NGINX Ingress Controller with NGINX App Protect through its Helm chart (set `nginx.image.tag` to the latest `5.x` available NGINX Ingress Controller version)
 
 ```code
 helm install nic oci://ghcr.io/nginx/charts/nginx-ingress \
-  --version 2.1.0 \
+  --version 2.2.1 \
   --set controller.image.repository=private-registry.nginx.com/nginx-ic-nap/nginx-plus-ingress \
-  --set controller.image.tag=5.0.0 \
+  --set controller.image.tag=5.1.0 \
   --set controller.nginxplus=true \
   --set controller.appprotect.enable=true \
   --set controller.serviceAccount.imagePullSecretName=regcred \
@@ -80,16 +80,16 @@ kubectl logs -l app.kubernetes.io/instance=nic -n nginx-ingress -c nginx-ingress
 Output should be similar to
 
 ```code
-2025/04/03 21:01:38 [notice] 21#21: signal 29 (SIGIO) received
-2025/04/03 21:01:38 [notice] 21#21: signal 17 (SIGCHLD) received from 24
-2025/04/03 21:01:38 [notice] 21#21: worker process 24 exited with code 0
-2025/04/03 21:01:38 [notice] 21#21: signal 29 (SIGIO) received
-2025/04/03 21:01:38 [notice] 21#21: signal 17 (SIGCHLD) received from 30
-2025/04/03 21:01:38 [notice] 21#21: worker process 30 exited with code 0
-2025/04/03 21:01:38 [notice] 21#21: signal 29 (SIGIO) received
-BD_MISC|NOTICE|Apr 03 21:01:39.620|0042|/builds/t1_j2fGn9/14/waf/waf-general/secore/bd/bd/temp_func.c:2737|UMU: 0 0 || 0 0 0 0 0 0 0 0 0 0 0 0 || 0 0 0 0 0 0 
-BD_MISC|NOTICE|Apr 03 21:01:39.620|0042|/builds/t1_j2fGn9/14/waf/waf-general/secore/bd/bd/temp_func.c:2738|UMU: total     0 (  0Kb) VM (1475M) RSS (244M) SWAP (  0M) trans     0
-BD_MISC|NOTICE|Apr 03 21:01:41.602|0040|/builds/t1_j2fGn9/14/waf/waf-general/secore/common/bd_tbls/LoggingAccount.cpp:4582|configuration changed for remote logger crc 1492155653, state 1, thread type 0
+2025/07/23 08:26:26 [notice] 20#20: exit
+2025/07/23 08:26:26 [notice] 19#19: exit
+I20250723 08:26:26.931031   1 main.go:109] Event(v1.ObjectReference{Kind:"ConfigMap", Namespace:"nginx-ingress", Name:"nic-nginx-ingress", UID:"6e698ced-d36e-46fa-95e7-28e20ffd5748", APIVersion:"v1", ResourceVersion:"52137240", FieldPath:""}): type: 'Normal' reason: 'Updated' ConfigMap nginx-ingress/nic-nginx-ingress updated without error
+I20250723 08:26:26.931060   1 main.go:109] Event(v1.ObjectReference{Kind:"ConfigMap", Namespace:"nginx-ingress", Name:"nic-nginx-ingress-mgmt", UID:"b71f04cc-ca0f-454c-a3d3-fcca4e71f2ee", APIVersion:"v1", ResourceVersion:"52137239", FieldPath:""}): type: 'Normal' reason: 'Updated' MGMT ConfigMap nginx-ingress/nic-nginx-ingress-mgmt updated without error
+2025/07/23 08:26:26 [notice] 15#15: signal 17 (SIGCHLD) received from 19
+2025/07/23 08:26:26 [notice] 15#15: worker process 19 exited with code 0
+2025/07/23 08:26:26 [notice] 15#15: signal 29 (SIGIO) received
+2025/07/23 08:26:26 [notice] 15#15: signal 17 (SIGCHLD) received from 20
+2025/07/23 08:26:26 [notice] 15#15: worker process 20 exited with code 0
+2025/07/23 08:26:26 [notice] 15#15: signal 29 (SIGIO) received
 ```
 
 9. Check Kubernetes service status
