@@ -34,22 +34,22 @@ curl -s https://private-registry.nginx.com/v2/nginx-ic-nap/nginx-plus-ingress/ta
 
 Note: `<nginx-one-eval.key>` and `<nginx-one-eval.key>` are the path and filename of your `nginx-one-eval.crt` and `nginx-one-eval.crt` files respectively
 
-Pick the latest `5.x` version (`5.1.0` at the time of writing)
+Pick the latest `5.x` version (`5.1.1` at the time of writing)
 
 5. Apply NGINX Ingress Controller custom resources (make sure the URI below references the latest available `5.x` NGINX Ingress Controller version)
 
 ```code
-kubectl apply -f https://raw.githubusercontent.com/nginx/kubernetes-ingress/v5.1.0/deploy/crds.yaml
-kubectl apply -f https://raw.githubusercontent.com/nginx/kubernetes-ingress/v5.1.0/deploy/crds-nap-waf.yaml
+kubectl apply -f https://raw.githubusercontent.com/nginx/kubernetes-ingress/v5.1.1/deploy/crds.yaml
+kubectl apply -f https://raw.githubusercontent.com/nginx/kubernetes-ingress/v5.1.1/deploy/crds-nap-waf.yaml
 ```
 
 6. Install NGINX Ingress Controller with NGINX App Protect through its Helm chart (set `nginx.image.tag` to the latest `5.x` available NGINX Ingress Controller version)
 
 ```code
 helm install nic oci://ghcr.io/nginx/charts/nginx-ingress \
-  --version 2.2.1 \
+  --version 2.2.2 \
   --set controller.image.repository=private-registry.nginx.com/nginx-ic-nap/nginx-plus-ingress \
-  --set controller.image.tag=5.1.0 \
+  --set controller.image.tag=5.1.1 \
   --set controller.nginxplus=true \
   --set controller.appprotect.enable=true \
   --set controller.serviceAccount.imagePullSecretName=regcred \
@@ -130,4 +130,11 @@ helm uninstall nic -n nginx-ingress
 
 ```code
 kubectl delete namespace nginx-ingress
+```
+
+* Delete custom resources
+
+```code
+kubectl delete -f https://raw.githubusercontent.com/nginx/kubernetes-ingress/v5.1.1/deploy/crds.yaml
+kubectl delete -f https://raw.githubusercontent.com/nginx/kubernetes-ingress/v5.1.1/deploy/crds-nap-waf.yaml
 ```
