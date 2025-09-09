@@ -8,7 +8,7 @@ spec:
     - tag: Fruits
     signature-sets:
     - name: apple_sigs
-      block: true
+      block: false
       signatureSet:
         filter:
           tagValue: Fruits
@@ -20,7 +20,7 @@ spec:
         block: false
         name: VIOL_DATA_GUARD
     data-guard:
-      creditCardNumbers: false
+      creditCardNumbers: true
       enabled: true
       enforcementMode: ignore-urls-in-list
       enforcementUrls: []
@@ -28,7 +28,7 @@ spec:
       lastSsnDigitsToExpose: 4
       maskData: true
       usSocialSecurityNumbers: true
-    enforcementMode: transparent
+    enforcementMode: blocking
     name: dataguard-alarm
     template:
       name: POLICY_TEMPLATE_NGINX_BASE
