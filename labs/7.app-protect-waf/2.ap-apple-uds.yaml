@@ -4,12 +4,12 @@ metadata:
   name: apple
 spec:
   signatures:
-  - accuracy: medium
+  - accuracy: low
     attackType:
       name: Brute Force Attack
     description: Medium accuracy user defined signature with tag (Fruits)
-    name: Apple_medium_acc
-    risk: medium
+    name: Apple_low_acc
+    risk: low
     rule: content:"apple"; nocase;
     signatureType: request
     systems:
