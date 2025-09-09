@@ -20,7 +20,7 @@ spec:
         block: false
         name: VIOL_DATA_GUARD
     data-guard:
-      creditCardNumbers: true
+      creditCardNumbers: false
       enabled: true
       enforcementMode: ignore-urls-in-list
       enforcementUrls: []
