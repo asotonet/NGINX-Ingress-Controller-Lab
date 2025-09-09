@@ -14,9 +14,29 @@ spec:
     spec:
       containers:
       - name: webapp
-        image: nginxdemos/nginx-hello:plain-text
+        #image: f5devcentral/f5-demo-httpd:openshift
+        image: cavalen/f5-demo-httpd:openshift
+        env:
+        - name: F5DEMO_APP
+          value: "website"
+        - name: F5DEMO_COLOR
+          value: "6600cc"
+        #  value: "009639" #NGINX GREEN
+        #  value: "e21d38" #F5 RED
         ports:
         - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            port: 8080
+            path: /
+            httpHeaders:
+            - name: server
+              value: "nginx/1.19.8"
+          initialDelaySeconds: 1
+          periodSeconds: 5
+          timeoutSeconds: 4
+          successThreshold: 2
+          failureThreshold: 3
 ---
 apiVersion: v1
 kind: Service
