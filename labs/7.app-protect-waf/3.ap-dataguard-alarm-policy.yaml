@@ -30,10 +30,5 @@ spec:
       usSocialSecurityNumbers: true
     enforcementMode: blocking
     name: dataguard-alarm
-    responsePageReference:
-      link: "https://raw.githubusercontent.com/cavalen/acme/master/response-pages-v2.json"
-      #link: "https://raw.githubusercontent.com/cavalen/acme/master/response-pages.json"
-    whitelistIpReference:
-      link: "https://raw.githubusercontent.com/cavalen/acme/master/whitelist-ips.json"
     template:
       name: POLICY_TEMPLATE_NGINX_BASE
