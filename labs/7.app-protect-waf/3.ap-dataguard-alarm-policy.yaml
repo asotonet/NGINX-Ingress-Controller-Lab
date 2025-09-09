@@ -16,21 +16,9 @@ spec:
     applicationLanguage: utf-8
     blocking-settings:
       violations:
-      - name: VIOL_DATA_GUARD
-        alarm: true
+      - alarm: true
         block: false
-      - name: VIOL_EVASION
-        alarm: true
-        block: false
-      evasions:
-      - description: "Multiple decoding"
-        enabled: true
-        maxDecodingPasses: 2
-    server-technologies:
-    - serverTechnologyName: MySQL
-    - serverTechnologyName: Unix/Linux
-    - serverTechnologyName: Node.js
-    - serverTechnologyName: Nginx
+        name: VIOL_DATA_GUARD
     data-guard:
       creditCardNumbers: true
       enabled: true
@@ -40,14 +28,12 @@ spec:
       lastSsnDigitsToExpose: 4
       maskData: true
       usSocialSecurityNumbers: true
+    enforcementMode: blocking
+    name: dataguard-alarm
     responsePageReference:
       link: "https://raw.githubusercontent.com/cavalen/acme/master/response-pages-v2.json"
       #link: "https://raw.githubusercontent.com/cavalen/acme/master/response-pages.json"
     whitelistIpReference:
       link: "https://raw.githubusercontent.com/cavalen/acme/master/whitelist-ips.json"
-    enforcementMode: blocking
-    name: dataguard-alarm
     template:
       name: POLICY_TEMPLATE_NGINX_BASE
-
-
