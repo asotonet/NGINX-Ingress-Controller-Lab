@@ -17,7 +17,7 @@ spec:
     blocking-settings:
       violations:
       - alarm: true
-        block: false
+        block: true
         name: VIOL_DATA_GUARD
     data-guard:
       creditCardNumbers: true
