@@ -46,6 +46,8 @@ spec:
     whitelistIpReference:
       link: "https://raw.githubusercontent.com/cavalen/acme/master/whitelist-ips.json"
     enforcementMode: blocking
-    name: dataguard-block
+    name: dataguard-alarm
     template:
       name: POLICY_TEMPLATE_NGINX_BASE
+
+
