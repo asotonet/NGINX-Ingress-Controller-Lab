@@ -6,34 +6,11 @@ spec:
   host: webapp.example.com
   policies:
   - name: waf-policy
-#    type: Security
   upstreams:
   - name: webapp
     service: webapp-svc
     port: 80
   routes:
   - path: /
-    errorPages:
-    - codes: [404]
-      return:
-        code: 404
-        body: |
-          <center>
-            <h1>Custom 404 : NOT FOUND :</h1>
-            <p><img src='https://i.gifer.com/3aM.gif' alt='Not found' /></p>
-          </center>
     action:
-      proxy:
-        upstream: webapp
-        requestHeaders:
-          set:
-          - name: X-MyHeader-Req
-            value: ${request_time}
-          - name: X-Forwarded-For
-            value: ${remote_addr}
-        responseHeaders:
-          add:
-          - name: X-MyHeader-Resp
-            value: ${nginx_version}
-
-#      pass: webapp
+      pass: webapp
