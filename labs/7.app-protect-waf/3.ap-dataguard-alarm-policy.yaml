@@ -28,7 +28,7 @@ spec:
       lastSsnDigitsToExpose: 4
       maskData: true
       usSocialSecurityNumbers: true
-    enforcementMode: blocking
+    enforcementMode: staging
     name: dataguard-alarm
     template:
       name: POLICY_TEMPLATE_NGINX_BASE
