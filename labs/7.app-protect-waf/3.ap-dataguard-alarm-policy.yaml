@@ -8,7 +8,7 @@ spec:
     - tag: Fruits
     signature-sets:
     - name: apple_sigs
-      block: false
+      block: true
       signatureSet:
         filter:
           tagValue: Fruits
