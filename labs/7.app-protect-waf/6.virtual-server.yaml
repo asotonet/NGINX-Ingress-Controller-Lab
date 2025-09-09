@@ -6,7 +6,7 @@ spec:
   host: webapp.example.com
   policies:
   - name: waf-policy
-    type: Security
+#    type: Security
   upstreams:
   - name: webapp
     service: webapp-svc
