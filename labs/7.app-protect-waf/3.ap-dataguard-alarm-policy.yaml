@@ -20,14 +20,14 @@ spec:
         block: false
         name: VIOL_DATA_GUARD
     data-guard:
-      creditCardNumbers: true
+      creditCardNumbers: false
       enabled: true
       enforcementMode: ignore-urls-in-list
       enforcementUrls: []
       lastCcnDigitsToExpose: 4
       lastSsnDigitsToExpose: 4
       maskData: true
-      usSocialSecurityNumbers: true
+      usSocialSecurityNumbers: false
     enforcementMode: blocking
     name: dataguard-alarm
     template:
